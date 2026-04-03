@@ -1,4 +1,4 @@
-// ========= بشير AI - اختبار الذكاء الاصطناعي (كيمياء الصف التاسع) - gpt-4o-mini =========
+// ========= بشير AI - اختبار الذكاء الاصطناعي (كيمياء الصف التاسع) - Gemini =========
 
 const openAIQuizBtn    = document.getElementById('openAIQuiz');
 const aiQuizOverlay    = document.getElementById('aiQuizOverlay');
@@ -50,7 +50,6 @@ function playBASuccess(){
 
   if(quizArea){
     quizArea.classList.remove('ai-glow');
-    // لإعادة تشغيل الأنيميشن كل مرة
     void quizArea.offsetWidth;
     quizArea.classList.add('ai-glow');
   }
@@ -93,37 +92,45 @@ if(generateAIQuestionBtn){
     quizArea.style.display = 'block';
 
     try{
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      // =====================================================================
+      const GEMINI_API_KEY = "AIzaSyBXjMpG5NOiOr1BwXvrJV26owCp1bYp3Ss"; 
+      
+      // هنا قمنا بإضافة دالة التنظيف لإزالة أي مسافات أو أسطر مخفية تم نسخها بالخطأ
+      const cleanKey = GEMINI_API_KEY.trim();
+      // =====================================================================
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cleanKey}`;
+
+      const res = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer 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"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{
-            role: "user",
-            content:
-`أنت معلم كيمياء للصف التاسع في سلطنة عمان.
+          contents: [{
+            parts: [{
+              text: `أنت معلم كيمياء للصف التاسع في سلطنة عمان.
 اكتب سؤال اختيار من متعدد (أربع خيارات) في مادة الكيمياء للصف التاسع حول درس: "${lesson}".
 ليكن السؤال مناسبًا لمستوى الطلاب، وبسيط الصياغة.
 أعد الإجابة بصيغة JSON فقط بدون أي نص آخر خارج JSON، بالشكل التالي تمامًا:
 {"question":"نص السؤال","options":["خيار أ","خيار ب","خيار ج","خيار د"],"answer_index":0}`
+            }]
           }],
-          max_tokens: 200,
-          temperature: 0.7
+          generationConfig: {
+            temperature: 0.7
+          }
         })
       });
 
       const data = await res.json();
 
       if (data.error) {
-        console.error("OpenAI Error:", data.error);
-        aiQuestionText.textContent = "❌ خطأ من OpenAI: " + (data.error.message || "غير معروف");
+        console.error("Gemini Error:", data.error);
+        aiQuestionText.textContent = "❌ خطأ من الخادم: " + (data.error.message || "غير معروف");
         return;
       }
 
-      let content = data.choices?.[0]?.message?.content;
+      let content = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if(!content){
         console.error("Response data:", data);
         aiQuestionText.textContent = "❌ لا يوجد رد مفهوم من بشير AI.";
@@ -170,7 +177,9 @@ if(generateAIQuestionBtn){
           if(idx === answerIndex){
             playBASuccess();
             alert('🎉 إجابة صحيحة! حصل الطالب على نقطة.');
-            changePoints(studentId, 1);
+            if(typeof changePoints === 'function') {
+                changePoints(studentId, 1);
+            }
           } else {
             playAIFail();
             alert('❌ إجابة غير صحيحة، جرّب سؤالاً آخر.');
