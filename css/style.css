@@ -1,0 +1,128 @@
+:root{
+      --bg:#0b1e3a; --bg2:#112a52; --accent:#1e3a8a; --text:#f2f6ff; --muted:#9fb3d1;
+      --gold:#f5c518; --silver:#c0c7d1; --bronze:#d29b6e; --shadow:0 10px 25px rgba(0,0,0,.25);
+      --leftPane:rgba(17,42,82,0.9); --overlay:rgba(9,23,52,0.8); --overlayDark:rgba(9,23,52,0.9);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Tajawal',system-ui}
+    .container{max-width:1280px;margin:0 auto;padding:18px;display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:start}
+    aside.magic{position:sticky;top:12px;height:calc(100vh - 24px);background:var(--leftPane);
+      border:1px solid #1b3769;border-radius:14px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+    .magic h3{margin:0 0 8px;font-size:16px;display:flex;align-items:center;gap:8px}
+    .magic .toolbtn{width:100%;padding:12px;border-radius:10px;border:1px solid #1b3769;background:#0f284d;color:var(--text);font-weight:700;cursor:pointer;text-align:right}
+    .magic .toolbtn:hover{background:#173365}
+    .magic .hint{font-size:12px;color:var(--muted);margin-top:auto;opacity:.85}
+    .main{display:flex;flex-direction:column;gap:14px}
+    header{text-align:center;padding:12px 16px;background:var(--bg2);box-shadow:var(--shadow);border-radius:16px}
+    header h1{margin:4px 0;font-size:22px}
+    .motto{font-size:16px;font-weight:600;color:var(--gold);margin-top:6px}
+    .tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .tab{padding:8px 14px;border-radius:10px;background:#0f284d;color:var(--text);border:1px solid #1b3769;cursor:pointer;transition:.2s}
+    .tab.active{background:var(--accent)}
+    .controls{text-align:center;margin:10px 0}
+    .btn,.file-label{padding:8px 12px;border-radius:8px;border:1px solid #1b3769;background:#0f284d;color:var(--text);cursor:pointer;margin:2px}
+    input[type=file]{display:none}
+    .section-title{text-align:center;font-size:24px;color:var(--gold);font-weight:700}
+    .top3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .podium{background:linear-gradient(180deg,#0f2447,#0c1f3d);border:2px solid transparent;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);position:relative}
+    .avatar{width:52px;height:52px;border-radius:12px;overflow:hidden;border:1px solid #244a84}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .podium .info{display:flex;flex-direction:column;gap:2px}
+    .podium.gold{border-color:var(--gold);box-shadow:0 0 15px 4px rgba(245,197,24,.8);animation:pulseGold 2s infinite ease-in-out}
+    .podium.silver{border-color:var(--silver);box-shadow:0 0 10px 2px rgba(192,199,209,.6)}
+    .podium.bronze{border-color:var(--bronze);box-shadow:0 0 10px 2px rgba(210,155,110,.6)}
+    @keyframes pulseGold{0%{box-shadow:0 0 10px 3px rgba(245,197,24,.6)}50%{box-shadow:0 0 20px 6px rgba(245,197,24,.9)}100%{box-shadow:0 0 10px 3px rgba(245,197,24,.6)}}
+    .trophy-icon{font-size:1.3em;margin-left:6px}
+    .rank-label{font-size:14px;opacity:.9;margin-bottom:2px}
+    .list{background:#0e213f;border:1px solid #1b3769;border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+    .row{display:grid;grid-template-columns:60px 1fr 110px 120px;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #16325f}
+    .row.header{background:#10244a;color:var(--muted);font-weight:700}
+    .mini{padding:6px 8px;border-radius:8px;border:1px solid #1b3769;background:#123261;color:#d9e6ff;cursor:pointer;font-weight:800;margin:1px}
+    .mini.add{border-color:rgba(46,204,113,.4)}
+    .mini.sub{border-color:rgba(231,76,60,.4)}
+    .name-with-medals{display:flex;align-items:center;gap:8px}
+    .medals{color:#ffd54a;font-size:18px;letter-spacing:1px}
+    footer{text-align:center;color:#7c93b8;font-size:12px;opacity:.6}
+
+    /* ====== العجلة (Overlay) ====== */
+    .overlay{position:fixed;inset:0;background:var(--overlay);display:none;align-items:center;justify-content:center;z-index:50}
+    .overlay.open{display:flex}
+    .wheel-wrap{position:relative;display:flex;flex-direction:row;align-items:center;gap:26px}
+    .wheel-left{display:flex;flex-direction:column;align-items:center;gap:10px}
+    .wheel-canvas{width:60vw;height:60vw;max-width:720px;max-height:720px;background:transparent}
+    .wheel-pointer{position:absolute;top:50%;right:-28px;transform:translateY(-50%) rotate(90deg);width:0;height:0;
+      border-top:14px solid transparent;border-bottom:14px solid transparent;border-left:26px solid var(--gold);
+      filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+    .wheel-controls{display:flex;gap:8px;justify-content:center}
+    .wheelbtn{padding:10px 14px;border-radius:10px;border:1px solid #1b3769;background:#0f284d;color:var(--text);font-weight:700;cursor:pointer}
+    .winner-box{min-width:260px;max-width:360px}
+    .winner-name{font-size:28px;font-weight:800;color:var(--gold);opacity:0;animation:none}
+    @keyframes fadeBlink{0%{opacity:0}50%{opacity:1}100%{opacity:.85}}
+
+    /* ====== المؤقت (Overlay) ====== */
+    .overlay-dark{position:fixed;inset:0;background:var(--overlayDark);display:none;align-items:center;justify-content:center;z-index:55}
+    .overlay-dark.open{display:flex}
+    .timer-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+    .timer-face{position:relative;width:360px;height:360px}
+    .timer-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:46px;font-weight:800;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.3)}
+    .timer-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .tbtn{padding:10px 14px;border-radius:10px;border:1px solid #1b3769;background:#0f284d;color:var(--text);font-weight:700;cursor:pointer}
+    .tbtn:hover{background:#173365}
+    .preset{background:#123261}
+
+    /* ====== دائرة التحدي (Overlay) ====== */
+    .challenge{position:fixed;inset:0;background:var(--overlayDark);display:none;align-items:center;justify-content:center;z-index:60}
+    .challenge.open{display:flex}
+    .challenge-card{width:min(1200px,95vw);background:#0f2547;border:2px solid var(--gold);border-radius:16px;padding:16px;box-shadow:0 0 22px rgba(245,197,24,.4)}
+    .challenge-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .challenge-title{font-size:22px;font-weight:800;color:var(--gold)}
+    .challenge-ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .sel, .ctrl{padding:8px 10px;border-radius:10px;border:1px solid #1b3769;background:#0f284d;color:var(--text)}
+    .ctrlbtn{padding:8px 12px;border-radius:10px;border:1px solid #1b3769;background:#123261;color:#d9e6ff;cursor:pointer;font-weight:700}
+    .ctrlbtn:hover{background:#173365}
+    .race{position:relative;height:260px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));border-radius:12px;overflow:hidden;margin:10px 0}
+    /* المسار: خط مستقيم ذهبي */
+    .race-line{position:absolute;left:6%;right:10%;top:50%;height:4px;background:linear-gradient(90deg,#b58a14,#f5c518,#b58a14);box-shadow:0 0 12px rgba(245,197,24,.8);transform:translateY(-50%)}
+    /* نقاط المراحل (5) */
+    .checkpoint{position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:#f5c518;box-shadow:0 0 10px rgba(245,197,24,.9),0 0 20px rgba(245,197,24,.5);transform:translate(-50%,-50%)}
+    .cp1{left:10%}.cp2{left:30%}.cp3{left:50%}.cp4{left:70%}.cp5{left:90%}
+    .finish-flag{position:absolute;top:50%;right:6%;transform:translateY(-70%);width:28px;height:18px;background:
+      linear-gradient(45deg,#fff 25%,#000 25%,#000 50%,#fff 50%,#fff 75%,#000 75%);
+      background-size:12px 12px;border:2px solid rgba(255,255,255,.6);box-shadow:0 0 10px rgba(0,0,0,.4)}
+    /* أفاتار المتسابق */
+    .runner{position:absolute;top:52%;left:6%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;overflow:hidden;border:3px solid #f5c518;box-shadow:0 0 14px rgba(245,197,24,.7);transition: left .7s ease-out}
+    .runner img{width:100%;height:100%;object-fit:cover}
+    .runner-name{position:absolute;top:calc(50% + 48px);transform:translate(-50%,0);left:6%;color:#fff;font-size:14px;text-shadow:0 1px 2px #000}
+    .runner2{top:70%}.name2{top:calc(70% + 48px)}
+    .race-panel{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .win-popup{position:absolute;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;text-align:center}
+    .win-popup.open{display:flex}
+    .win-box{background:#10244a;border:2px solid var(--gold);padding:18px;border-radius:14px;box-shadow:0 0 20px rgba(245,197,24,.5)}
+    .win-box h3{margin:6px 0 10px;color:var(--gold)}
+    .stars{color:#ffd54a;font-size:20px;margin-right:6px}
+
+    /* صغائر */
+    .hide{display:none!important}
+
+
+/* تأثير الوميض الذهبي حول مربع السؤال في بشير AI */
+#quizArea.ai-glow {
+  animation: aiGlow 1s ease-out;
+  box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+}
+
+@keyframes aiGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    border: 2px solid rgba(255, 215, 0, 0.2);
+  }
+  40% {
+    box-shadow: 0 0 25px 6px rgba(255, 215, 0, 0.95);
+    border: 2px solid rgba(255, 215, 0, 0.95);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    border: 2px solid rgba(255, 215, 0, 0.2);
+  }
+}

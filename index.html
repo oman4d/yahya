@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة نقاط الصفوف | خمس فصول × 40 طالب + دائرة التحدي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<script>
+  if (localStorage.getItem("auth") !== "ok") {
+    window.location.href = "login.html";
+  }
+</script>
+
+<body>
+  <div class="container">
+    <!-- الشريط الجانبي -->
+    <aside class="magic">
+      <h3>🪄 أدوات سحرية</h3>
+      <button id="openWheel" class="toolbtn">🎡 العجلة العشوائية</button>
+      <button id="openTimer" class="toolbtn">⏳ المؤقت السحري</button>
+      <button id="openChallenge" class="toolbtn">🟡 دائرة التحدي</button>
+      <button id="openAIQuiz" class="toolbtn">🤖 بشير AI</button>
+      <div class="hint">سيتم إضافة أدوات أخرى هنا لاحقًا.</div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main">
+      <header>
+        <h1>لوحة نقاط الصف – خمس فصول</h1>
+        <div class="motto">✨ كل نقطة تفتح بابًا جديدًا للتميز! ✨</div>
+        <div class="tabs" id="tabs"></div>
+        <div class="controls">
+          <label class="file-label" for="excelInput">📂 استيراد بيانات من Excel</label>
+          <input id="excelInput" type="file" accept=".xlsx,.xls">
+          <button class="btn" id="resetBtn">إعادة ضبط النقاط</button>
+        </div>
+      </header>
+
+      <div class="section-title">🏆 عباقرة الصف 🏆</div>
+      <section class="top3" id="top3"></section>
+
+      <section class="list" id="list">
+        <div class="row header"><div>الصورة</div><div>اسم الطالب</div><div>النقاط</div><div>تحكم</div></div>
+        <div id="rows"></div>
+      </section>
+
+      <footer>تطوير أ. يحيى الكشري</footer>
+    </div>
+  </div>
+
+  <!-- نافذة العجلة -->
+  <div id="wheelOverlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="wheel-wrap">
+      <div class="wheel-left">
+        <canvas id="wheel" class="wheel-canvas" width="800" height="800"></canvas>
+        <div class="wheel-controls">
+          <button id="spinBtn" class="wheelbtn">▶️ بدء الدوران</button>
+          <button id="plus1" class="wheelbtn" disabled>+1</button>
+          <button id="plus5" class="wheelbtn" disabled>+5</button>
+          <button id="minus1" class="wheelbtn" disabled>-1</button>
+          <button id="closeWheel" class="wheelbtn">✖ إغلاق</button>
+        </div>
+      </div>
+      <div class="wheel-pointer"></div>
+      <div class="winner-box">
+        <div id="winner" class="winner-name"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة المؤقت -->
+  <div id="timerOverlay" class="overlay-dark" role="dialog" aria-modal="true">
+    <div class="timer-wrap">
+      <div class="timer-face">
+        <svg id="timerSVG" width="360" height="360" viewBox="0 0 360 360">
+          <circle cx="180" cy="180" r="150" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="18"/>
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#f5c518"/>
+              <stop offset="100%" stop-color="#d39b2d"/>
+            </linearGradient>
+          </defs>
+          <circle id="timerProgress" cx="180" cy="180" r="150" fill="none" stroke="url(#goldGrad)" stroke-width="18"
+                  stroke-linecap="round" transform="rotate(-90 180 180)"/>
+        </svg>
+        <div id="timerText" class="timer-text">00:30</div>
+      </div>
+
+      <div class="timer-controls" style="margin-top:6px">
+        <button class="tbtn preset" data-sec="30">30 ثانية</button>
+        <button class="tbtn preset" data-sec="60">1 دقيقة</button>
+        <button class="tbtn preset" data-sec="300">5 دقائق</button>
+      </div>
+      <div class="timer-controls">
+        <button id="timerStart" class="tbtn">▶️ بدء</button>
+        <button id="timerStop" class="tbtn">⏹️ إيقاف / إعادة ضبط</button>
+        <button id="timerClose" class="tbtn">✖ إغلاق</button>
+      </div>
+
+      <div id="timerDone" style="height:26px;font-weight:800;color:var(--gold)"></div>
+    </div>
+  </div>
+
+  <!-- نافذة دائرة التحدي -->
+  <div id="challengeOverlay" class="challenge" role="dialog" aria-modal="true">
+    <div class="challenge-card">
+      <div class="challenge-head">
+        <div class="challenge-title">🟡 دائرة التحدي</div>
+        <div class="challenge-ctrls">
+          <label>الوضع:
+            <select id="modeSelect" class="sel">
+              <option value="single">فردي</option>
+              <option value="dual" selected>ثنائي</option>
+            </select>
+          </label>
+          <label>المدة:
+            <select id="timeSelect" class="sel">
+              <option value="60">1 دقيقة</option>
+              <option value="120" selected>2 دقيقة</option>
+              <option value="180">3 دقائق</option>
+            </select>
+          </label>
+          <label>عدد الأسئلة:
+            <select id="questionSelect" class="sel">
+              <option value="5" selected>5</option>
+              <option value="3">3</option>
+              <option value="7">7</option>
+            </select>
+          </label>
+          <button id="startChallenge" class="ctrlbtn">▶️ ابدأ</button>
+          <button id="closeChallenge" class="ctrlbtn">✖ إغلاق</button>
+        </div>
+      </div>
+
+      <div class="challenge-ctrls" style="margin-bottom:8px">
+        <label>المتسابق 1:
+          <select id="p1Select" class="sel"></select>
+        </label>
+        <label id="p2Wrap">المتسابق 2:
+          <select id="p2Select" class="sel"></select>
+        </label>
+      </div>
+
+      <div class="race" id="race">
+        <div class="race-line"></div>
+        <div class="checkpoint cp1"></div>
+        <div class="checkpoint cp2"></div>
+        <div class="checkpoint cp3"></div>
+        <div class="checkpoint cp4"></div>
+        <div class="checkpoint cp5"></div>
+        <div class="finish-flag"></div>
+
+        <div id="runner1" class="runner" style="display:none"><img id="runner1Img" src=""><!-- avatar --></div>
+        <div id="runner2" class="runner runner2" style="display:none"><img id="runner2Img" src=""></div>
+        <div id="name1" class="runner-name"></div>
+        <div id="name2" class="runner-name name2"></div>
+
+        <div class="win-popup" id="winPopup">
+          <div class="win-box">
+            <h3>🎉 الفائز: <span id="winnerName"></span> ⭐</h3>
+            <div>تمت إضافة وسام ⭐ بجانب الاسم في اللوحة الرئيسية</div>
+            <div class="race-panel" style="margin-top:12px">
+              <button class="ctrlbtn" id="newChallenge">🔁 تحدٍ جديد</button>
+              <button class="ctrlbtn" id="endChallenge">تم</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="race-panel">
+        <button id="p1Plus" class="ctrlbtn">✅ +1 للمتسابق 1</button>
+        <button id="p2Plus" class="ctrlbtn">✅ +1 للمتسابق 2</button>
+        <div class="ctrl" id="challengeTimer" style="font-weight:800;color:var(--gold)">00:00</div>
+      </div>
+    </div>
+  </div>
+
+  
+<!-- نافذة بشير AI لاختبار الذكاء الاصطناعي -->
+<div id="aiQuizOverlay" class="overlay" role="dialog" aria-modal="true">
+  <div class="wheel-wrap" style="flex-direction:column;text-align:center;max-width:640px;">
+    <h2 style="color:var(--gold);margin-bottom:10px">🤖 بشير AI - أسئلة كيمياء الصف التاسع</h2>
+
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:10px;">
+      <label style="color:#fff;">
+        الطالب:
+        <select id="aiStudentSelect" class="sel" style="min-width:180px;"></select>
+      </label>
+
+      <label style="color:#fff;">
+        الدرس:
+        <select id="lessonSelect" class="sel" style="min-width:220px;">
+          <option value="حالات المادة و تغيرات الحالة">حالات المادة و تغيرات الحالة</option>
+          <option value="النموذج الجسيمي و منحنيات التبريد و التسخين">النموذج الجسيمي و منحنيات التبريد و التسخين</option>
+          <option value="أنواع المخاليط و انتشار الموائع">أنواع المخاليط و انتشار الموائع</option>
+          <option value="نقاوة المواد و ماهيتها و فصل المواد و تنقيتها">نقاوة المواد و ماهيتها و فصل المواد و تنقيتها</option>
+          <option value="معالجة المياه">معالجة المياه</option>
+          <option value="العناصر و المركبات و التغيرات الكيميائية و الفيزيائية">العناصر و المركبات و التغيرات الكيميائية و الفيزيائية</option>
+          <option value="تركيب الذرة و العدد الذري والكتلي">تركيب الذرة و العدد الذري والكتلي</option>
+          <option value="ترتيب الالكترونات في الذرات">ترتيب الالكترونات في الذرات</option>
+          <option value="الجدول الدوري و الفلزات و اللافلزات">الجدول الدوري و الفلزات و اللافلزات</option>
+          <option value="التركيب الالكتروني و دورية خصائص العناصر">التركيب الالكتروني و دورية خصائص العناصر</option>
+          <option value="الروابط الكيميائية و أهميتها">الروابط الكيميائية و أهميتها</option>
+          <option value="الرابطة الايونية و المركبات الأيونية">الرابطة الايونية و المركبات الأيونية</option>
+          <option value="الرابطة التساهمية و المركبات التساهمية">الرابطة التساهمية و المركبات التساهمية</option>
+          <option value="الصيغ الكيميائية">الصيغ الكيميائية</option>
+          <option value="الخصائص الفيزيائية للمركبات الأيونية و التساهمية">الخصائص الفيزيائية للمركبات الأيونية و التساهمية</option>
+          <option value="البلورات الايونية و البلورات التساهمية">البلورات الايونية و البلورات التساهمية</option>
+          <option value="معدل سرعة التفاعل الكيميائي">معدل سرعة التفاعل الكيميائي</option>
+          <option value="العوامل المؤثرة على سرعة التفاعل و نظرية التصادم">العوامل المؤثرة على سرعة التفاعل و نظرية التصادم</option>
+          <option value="تغيرات الطاقة في التفاعل الكيميائي">تغيرات الطاقة في التفاعل الكيميائي</option>
+        </select>
+      </label>
+    </div>
+
+    <button id="generateAIQuestion" class="wheelbtn">🧠 توليد سؤال</button>
+
+    <div id="quizArea" style="display:none;background:#0f2547;padding:18px;border-radius:14px;margin-top:14px;min-width:320px;">
+      <p id="aiQuestionText" style="font-size:18px;color:#fff;"></p>
+      <div id="aiOptions" style="display:flex;flex-direction:column;gap:10px;margin-top:10px;"></div>
+    </div>
+
+    <button id="closeAIQuiz" class="wheelbtn" style="margin-top:14px;">✖ إغلاق</button>
+  </div>
+</div>
+
+<!-- Firebase v8 (أسهل للاستخدام مع مشروعك الحالي) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<!-- ملف الربط الخاص بنا -->
+<script src="js/firebase-sync.js"></script>
+<script src="js/main.js"></script>
+<script src="js/wheel.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/challenge.js"></script>
+<script src="js/ai_quiz.js"></script>
+
+</body>
+</html>
