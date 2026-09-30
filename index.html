@@ -7,6 +7,75 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* نافذة تعديل أسماء الطلاب */
+    .names-editor-overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      background:rgba(5,15,35,.78);
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .names-editor-card{
+      width:min(760px,96vw);
+      max-height:90vh;
+      overflow:auto;
+      background:#fff;
+      color:#0f172a;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      text-align:right;
+    }
+
+    .names-editor-card h2{
+      margin:0 0 8px;
+    }
+
+    .names-editor-card p{
+      margin:0 0 12px;
+      color:#475569;
+      line-height:1.8;
+    }
+
+    #namesEditorText{
+      width:100%;
+      min-height:360px;
+      resize:vertical;
+      box-sizing:border-box;
+      border:2px solid #cbd5e1;
+      border-radius:12px;
+      padding:14px;
+      font-family:'Tajawal',sans-serif;
+      font-size:17px;
+      line-height:1.8;
+      direction:rtl;
+      text-align:right;
+      outline:none;
+    }
+
+    #namesEditorText:focus{
+      border-color:#1e3a8a;
+    }
+
+    .names-editor-footer{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:14px;
+    }
+
+    .names-editor-count{
+      margin-inline-start:auto;
+      font-weight:800;
+      color:#1e3a8a;
+    }
+  </style>
 </head>
 <script>
   if (localStorage.getItem("auth") !== "ok") {
@@ -35,6 +104,7 @@
         <div class="controls">
           <label class="file-label" for="excelInput">📂 استيراد بيانات من Excel</label>
           <input id="excelInput" type="file" accept=".xlsx,.xls">
+          <button class="btn" id="editNamesBtn">👥 تعديل أسماء الشعبة</button>
           <button class="btn" id="resetBtn">إعادة ضبط النقاط</button>
         </div>
       </header>
@@ -48,6 +118,28 @@
       </section>
 
       <footer>تطوير أ. يحيى الكشري</footer>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل أسماء الطلاب -->
+  <div id="namesEditorOverlay" class="names-editor-overlay" role="dialog" aria-modal="true" aria-labelledby="namesEditorTitle">
+    <div class="names-editor-card">
+      <h2 id="namesEditorTitle">👥 تعديل أسماء الطلاب</h2>
+      <p>
+        الصق الأسماء هنا، كل اسم في سطر مستقل.
+        سيتم تعديل أسماء الشعبة المحددة فقط، ثم تتم مزامنتها مع قاعدة البيانات عند الحفظ.
+      </p>
+
+      <textarea id="namesEditorText" placeholder="مثال:
+أحمد بن محمد...
+سالم بن علي...
+خالد بن عبدالله..."></textarea>
+
+      <div class="names-editor-footer">
+        <button class="btn" id="saveNamesBtn">💾 حفظ ومزامنة</button>
+        <button class="btn" id="closeNamesEditor">✖ إلغاء</button>
+        <div class="names-editor-count" id="namesCount">عدد الطلاب: 0</div>
+      </div>
     </div>
   </div>
 
