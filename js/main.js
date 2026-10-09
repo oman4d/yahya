@@ -3,6 +3,22 @@ const CLASSES = ["التاسع/1","التاسع/2","التاسع/3","التاس�
 
 const STORAGE_KEY = 'leaderboardData_full_final_wheel_timer';
 
+/* ========= أنواع الأوسمة ========= */
+const BADGE_TYPES = {
+  challenge:    { icon:'⭐', label:'وسام التحدي' },
+  genius:       { icon:'🧠', label:'وسام العبقري' },
+  perseverance: { icon:'🔥', label:'وسام المثابرة' },
+  accuracy:     { icon:'🎯', label:'وسام الدقة' },
+  cooperation:  { icon:'🤝', label:'وسام التعاون' },
+  excellence:   { icon:'🏆', label:'وسام التميز' }
+};
+
+function makeEmptyBadges(){
+  return Object.fromEntries(
+    Object.keys(BADGE_TYPES).map(key=>[key,0])
+  );
+}
+
 const DEFAULT_AVATAR =
   `data:image/svg+xml;base64,${btoa(
     `<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'>
@@ -26,7 +42,8 @@ function makeDefaultData(){
       id:`${cls}-${i+1}`,
       name:`طالب ${i+1}`,
       points:0,
-      medals:0,
+      medals:0, // حقل قديم للتوافق مع البيانات السابقة
+      badges:makeEmptyBadges(),
       image:DEFAULT_AVATAR
 
     }));
@@ -64,6 +81,18 @@ function normalizeData(db){
 
       if(typeof s.medals!=="number"){
         s.medals=0;
+      }
+
+      /* ترحيل تلقائي: النجوم القديمة تصبح أوسمة تحدي */
+      const legacyChallenge = Math.max(0, Number(s.medals)||0);
+      const incomingBadges = (s.badges && typeof s.badges==='object') ? s.badges : {};
+      s.badges = makeEmptyBadges();
+      Object.keys(BADGE_TYPES).forEach(type=>{
+        const value = Number(incomingBadges[type]);
+        s.badges[type] = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+      });
+      if(!('challenge' in incomingBadges) && legacyChallenge>0){
+        s.badges.challenge = legacyChallenge;
       }
 
       if(!s.image){
@@ -256,16 +285,21 @@ function sortedByPoints(arr){
 }
 
 
-/* ========= تحويل الأوسمة إلى نجوم ========= */
-
-function medalsToStars(n){
-
-  return n>0
-    ?" "+"⭐".repeat(
-      Math.min(n,20)
+/* ========= عرض الأوسمة باختصار ========= */
+function badgesToHTML(badges){
+  if(!badges) return '';
+  return Object.entries(BADGE_TYPES)
+    .filter(([type])=>(badges[type]||0)>0)
+    .map(([type,meta])=>
+      `<span class="badge-chip" title="${meta.label}">${meta.icon}<b>${badges[type]}</b></span>`
     )
-    :"";
+    .join('');
+}
 
+function totalBadges(student){
+  return Object.keys(BADGE_TYPES).reduce(
+    (sum,type)=>sum+(student.badges?.[type]||0),0
+  );
 }
 
 
@@ -319,7 +353,7 @@ function renderTop3(list){
         points:0,
         image:DEFAULT_AVATAR,
         id:null,
-        medals:0
+        badges:makeEmptyBadges()
       };
 
     const card=
@@ -346,9 +380,10 @@ function renderTop3(list){
          <div>
            ${r.icon}
            ${s.name}
-           <span class="medals">
-             ${medalsToStars(s.medals)}
-           </span>
+         </div>
+
+         <div class="badge-summary podium-badges">
+           ${badgesToHTML(s.badges)}
          </div>
 
          <div>
@@ -435,42 +470,21 @@ function renderList(){
          <img src="${s.image}">
        </div>
 
-       <div class="name-with-medals">
-         <span>${s.name}</span>
-         <span class="medals">
-           ${medalsToStars(s.medals)}
-         </span>
+       <div class="student-name-block">
+         <span class="student-name">${s.name}</span>
+         <div class="badge-summary">${badgesToHTML(s.badges)}</div>
        </div>
 
        <div>
          ${s.points}
        </div>
 
-       <div>
+       <div class="student-actions">
 
-         <button
-           class="mini add"
-           data-id="${s.id}"
-           data-delta="1"
-         >
-           +1
-         </button>
-
-         <button
-           class="mini add"
-           data-id="${s.id}"
-           data-delta="5"
-         >
-           +5
-         </button>
-
-         <button
-           class="mini sub"
-           data-id="${s.id}"
-           data-delta="-1"
-         >
-           -1
-         </button>
+         <button class="mini add" data-id="${s.id}" data-delta="1">+1</button>
+         <button class="mini add" data-id="${s.id}" data-delta="5">+5</button>
+         <button class="mini sub" data-id="${s.id}" data-delta="-1">-1</button>
+         <button class="mini badge-manage" data-badge-student="${s.id}">🏅 الأوسمة</button>
 
        </div>`;
 
@@ -479,35 +493,21 @@ function renderList(){
   });
 
   rows
-    .querySelectorAll("button")
+    .querySelectorAll("button[data-delta]")
     .forEach(btn=>{
+      btn.addEventListener("click",e=>{
+        const id=e.currentTarget.getAttribute("data-id");
+        const delta=parseInt(e.currentTarget.getAttribute("data-delta"));
+        changePoints(id,delta);
+      });
+    });
 
-      btn.addEventListener(
-        "click",
-        e=>{
-
-          const id=
-            e.currentTarget
-              .getAttribute(
-                "data-id"
-              );
-
-          const delta=
-            parseInt(
-              e.currentTarget
-                .getAttribute(
-                  "data-delta"
-                )
-            );
-
-          changePoints(
-            id,
-            delta
-          );
-
-        }
-      );
-
+  rows
+    .querySelectorAll("button[data-badge-student]")
+    .forEach(btn=>{
+      btn.addEventListener("click",e=>{
+        openStudentBadges(e.currentTarget.getAttribute("data-badge-student"));
+      });
     });
 
 }
@@ -522,6 +522,143 @@ function renderAll(){
   renderList();
 
 }
+
+/* =================================================
+   نظام الأوسمة
+   ================================================= */
+
+const manageBadgesBtn = document.getElementById('manageBadgesBtn');
+const badgeEditorOverlay = document.getElementById('badgeEditorOverlay');
+const badgeEditorTitle = document.getElementById('badgeEditorTitle');
+const badgeRows = document.getElementById('badgeRows');
+const closeBadgeEditor = document.getElementById('closeBadgeEditor');
+const resetStudentBadgesBtn = document.getElementById('resetStudentBadgesBtn');
+
+const classBadgesOverlay = document.getElementById('classBadgesOverlay');
+const classBadgesTitle = document.getElementById('classBadgesTitle');
+const classBadgeType = document.getElementById('classBadgeType');
+const resetSelectedBadgeBtn = document.getElementById('resetSelectedBadgeBtn');
+const resetClassBadgesBtn = document.getElementById('resetClassBadgesBtn');
+const closeClassBadges = document.getElementById('closeClassBadges');
+
+let editingBadgeStudentId = null;
+
+function ensureStudentBadges(student){
+  if(!student.badges || typeof student.badges!=='object'){
+    student.badges=makeEmptyBadges();
+  }
+  Object.keys(BADGE_TYPES).forEach(type=>{
+    const value=Number(student.badges[type]);
+    student.badges[type]=Number.isFinite(value)?Math.max(0,Math.floor(value)):0;
+  });
+  return student.badges;
+}
+
+function changeBadge(studentId,type,delta){
+  if(!BADGE_TYPES[type]) return;
+  const student=(DB[currentClass]||[]).find(s=>s.id===studentId);
+  if(!student) return;
+  ensureStudentBadges(student);
+  student.badges[type]=Math.max(0,(student.badges[type]||0)+delta);
+  saveData();
+  renderAll();
+  if(editingBadgeStudentId===studentId && badgeEditorOverlay?.classList.contains('open')){
+    renderBadgeEditor();
+  }
+}
+
+function renderBadgeEditor(){
+  const student=(DB[currentClass]||[]).find(s=>s.id===editingBadgeStudentId);
+  if(!student || !badgeRows) return;
+  ensureStudentBadges(student);
+  badgeEditorTitle.textContent=`🏅 أوسمة ${student.name}`;
+  badgeRows.innerHTML=Object.entries(BADGE_TYPES).map(([type,meta])=>`
+    <div class="badge-row">
+      <div class="badge-row-label"><span class="badge-big-icon">${meta.icon}</span><span>${meta.label}</span></div>
+      <div class="badge-counter">
+        <button class="badge-step minus" data-badge-type="${type}" data-badge-delta="-1">−</button>
+        <strong>${student.badges[type]||0}</strong>
+        <button class="badge-step plus" data-badge-type="${type}" data-badge-delta="1">+</button>
+      </div>
+    </div>
+  `).join('');
+
+  badgeRows.querySelectorAll('[data-badge-type]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      changeBadge(editingBadgeStudentId,btn.dataset.badgeType,Number(btn.dataset.badgeDelta));
+    });
+  });
+}
+
+function openStudentBadges(studentId){
+  editingBadgeStudentId=studentId;
+  renderBadgeEditor();
+  badgeEditorOverlay?.classList.add('open');
+}
+
+function closeStudentBadges(){
+  badgeEditorOverlay?.classList.remove('open');
+  editingBadgeStudentId=null;
+}
+
+function resetStudentBadges(){
+  const student=(DB[currentClass]||[]).find(s=>s.id===editingBadgeStudentId);
+  if(!student) return;
+  if(!confirm(`هل تريد تصفير جميع أوسمة ${student.name}؟`)) return;
+  student.badges=makeEmptyBadges();
+  saveData();
+  renderAll();
+  renderBadgeEditor();
+}
+
+function populateClassBadgeTypes(){
+  if(!classBadgeType) return;
+  classBadgeType.innerHTML=Object.entries(BADGE_TYPES)
+    .map(([type,meta])=>`<option value="${type}">${meta.icon} ${meta.label}</option>`)
+    .join('');
+}
+
+function openClassBadgesManager(){
+  populateClassBadgeTypes();
+  if(classBadgesTitle) classBadgesTitle.textContent=`🏅 إدارة أوسمة ${currentClass}`;
+  classBadgesOverlay?.classList.add('open');
+}
+
+function closeClassBadgesManager(){
+  classBadgesOverlay?.classList.remove('open');
+}
+
+function resetSelectedBadgeForClass(){
+  const type=classBadgeType?.value;
+  if(!BADGE_TYPES[type]) return;
+  const meta=BADGE_TYPES[type];
+  if(!confirm(`هل تريد تصفير ${meta.icon} ${meta.label} لجميع طلاب ${currentClass}؟`)) return;
+  (DB[currentClass]||[]).forEach(student=>{
+    ensureStudentBadges(student);
+    student.badges[type]=0;
+  });
+  saveData();
+  renderAll();
+  alert(`✅ تم تصفير ${meta.label} في ${currentClass}.`);
+}
+
+function resetAllBadgesForClass(){
+  if(!confirm(`هل تريد تصفير جميع الأوسمة لجميع طلاب ${currentClass}؟`)) return;
+  (DB[currentClass]||[]).forEach(student=>student.badges=makeEmptyBadges());
+  saveData();
+  renderAll();
+  alert(`✅ تم تصفير جميع أوسمة ${currentClass}.`);
+}
+
+manageBadgesBtn?.addEventListener('click',openClassBadgesManager);
+closeBadgeEditor?.addEventListener('click',closeStudentBadges);
+resetStudentBadgesBtn?.addEventListener('click',resetStudentBadges);
+closeClassBadges?.addEventListener('click',closeClassBadgesManager);
+resetSelectedBadgeBtn?.addEventListener('click',resetSelectedBadgeForClass);
+resetClassBadgesBtn?.addEventListener('click',resetAllBadgesForClass);
+
+badgeEditorOverlay?.addEventListener('click',e=>{ if(e.target===badgeEditorOverlay) closeStudentBadges(); });
+classBadgesOverlay?.addEventListener('click',e=>{ if(e.target===classBadgesOverlay) closeClassBadgesManager(); });
 
 
 /* =================================================
@@ -725,6 +862,7 @@ function saveEditedNames(){
           points:0,
 
           medals:0,
+          badges:makeEmptyBadges(),
 
           image:
             DEFAULT_AVATAR
@@ -965,7 +1103,8 @@ function handleExcel(evt){
             img||
             DEFAULT_AVATAR,
 
-          medals:0
+          medals:0,
+          badges:makeEmptyBadges()
 
         };
 
