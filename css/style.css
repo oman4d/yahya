@@ -126,3 +126,44 @@
     border: 2px solid rgba(255, 215, 0, 0.2);
   }
 }
+
+
+/* ====== نظام الأوسمة ====== */
+.row{grid-template-columns:60px 1fr 90px 210px}
+.student-name-block{display:flex;flex-direction:column;gap:5px;min-width:0}
+.student-name{font-weight:700;line-height:1.5}
+.student-actions{display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.badge-summary{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-height:24px}
+.badge-chip{display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:2px 7px;font-size:14px;line-height:1.4}
+.badge-chip b{font-size:12px;color:#fff}
+.podium-badges{margin-top:3px}
+.badge-manage{border-color:rgba(245,197,24,.55);color:#ffe78b}
+
+.badge-overlay{position:fixed;inset:0;background:rgba(5,15,35,.82);display:none;align-items:center;justify-content:center;z-index:10000;padding:18px}
+.badge-overlay.open{display:flex}
+.badge-editor-card{width:min(620px,96vw);max-height:90vh;overflow:auto;background:#0f2547;color:#f2f6ff;border:2px solid var(--gold);border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.badge-editor-card h2{margin:0 0 6px;color:var(--gold)}
+.badge-editor-help{margin:0 0 16px;color:#bfd0ea}
+.badge-rows{display:flex;flex-direction:column;gap:9px}
+.badge-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;background:#102d55;border:1px solid #234873;border-radius:12px}
+.badge-row-label{display:flex;align-items:center;gap:10px;font-weight:700}
+.badge-big-icon{font-size:27px;width:36px;text-align:center}
+.badge-counter{display:flex;align-items:center;gap:10px;min-width:128px;justify-content:flex-end}
+.badge-counter strong{min-width:30px;text-align:center;font-size:20px;color:#fff}
+.badge-step{width:36px;height:36px;border-radius:9px;border:1px solid #315987;background:#143866;color:#fff;font-size:22px;font-weight:800;cursor:pointer}
+.badge-step.plus{border-color:rgba(46,204,113,.55)}
+.badge-step.minus{border-color:rgba(231,76,60,.55)}
+.badge-step:hover{background:#1b477f}
+.badge-editor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.vertical-actions{flex-direction:column;align-items:stretch}
+.danger-btn{border-color:rgba(231,76,60,.7)!important;background:#5b2330!important}
+.badge-type-label{display:block;margin:12px 0 6px;font-weight:700}
+.badge-type-select{width:100%;padding:11px;border-radius:10px;border:1px solid #315987;background:#0f284d;color:#fff;font-family:'Tajawal',sans-serif;font-size:16px}
+
+@media (max-width:850px){
+  .row{grid-template-columns:48px 1fr 65px 150px;gap:6px;padding:8px}
+  .student-actions{gap:2px}
+  .mini{padding:5px 6px;font-size:12px}
+  .badge-manage{width:100%}
+  .badge-chip{font-size:13px;padding:2px 5px}
+}
