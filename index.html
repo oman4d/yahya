@@ -105,6 +105,7 @@
           <label class="file-label" for="excelInput">📂 استيراد بيانات من Excel</label>
           <input id="excelInput" type="file" accept=".xlsx,.xls">
           <button class="btn" id="editNamesBtn">👥 تعديل أسماء الشعبة</button>
+          <button class="btn" id="manageBadgesBtn">🏅 إدارة الأوسمة</button>
           <button class="btn" id="resetBtn">إعادة ضبط النقاط</button>
         </div>
       </header>
@@ -139,6 +140,34 @@
         <button class="btn" id="saveNamesBtn">💾 حفظ ومزامنة</button>
         <button class="btn" id="closeNamesEditor">✖ إلغاء</button>
         <div class="names-editor-count" id="namesCount">عدد الطلاب: 0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة أوسمة طالب -->
+  <div id="badgeEditorOverlay" class="badge-overlay" role="dialog" aria-modal="true">
+    <div class="badge-editor-card">
+      <h2 id="badgeEditorTitle">🏅 أوسمة الطالب</h2>
+      <p class="badge-editor-help">يمكنك زيادة أو تقليل أي وسام يدويًا.</p>
+      <div id="badgeRows" class="badge-rows"></div>
+      <div class="badge-editor-actions">
+        <button class="btn danger-btn" id="resetStudentBadgesBtn">🗑️ تصفير أوسمة الطالب</button>
+        <button class="btn" id="closeBadgeEditor">✖ إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة إدارة أوسمة الشعبة -->
+  <div id="classBadgesOverlay" class="badge-overlay" role="dialog" aria-modal="true">
+    <div class="badge-editor-card class-badges-card">
+      <h2 id="classBadgesTitle">🏅 إدارة أوسمة الشعبة</h2>
+      <p class="badge-editor-help">اختر نوع الوسام إذا أردت تصفيره لجميع طلاب الشعبة، أو صفّر جميع أوسمة الشعبة.</p>
+      <label class="badge-type-label" for="classBadgeType">نوع الوسام</label>
+      <select id="classBadgeType" class="badge-type-select"></select>
+      <div class="badge-editor-actions vertical-actions">
+        <button class="btn" id="resetSelectedBadgeBtn">تصفير النوع المحدد في الشعبة</button>
+        <button class="btn danger-btn" id="resetClassBadgesBtn">🗑️ تصفير جميع أوسمة الشعبة</button>
+        <button class="btn" id="closeClassBadges">✖ إغلاق</button>
       </div>
     </div>
   </div>
@@ -253,7 +282,7 @@
         <div class="win-popup" id="winPopup">
           <div class="win-box">
             <h3>🎉 الفائز: <span id="winnerName"></span> ⭐</h3>
-            <div>تمت إضافة وسام ⭐ بجانب الاسم في اللوحة الرئيسية</div>
+            <div>تمت إضافة ⭐ وسام التحدي للفائز</div>
             <div class="race-panel" style="margin-top:12px">
               <button class="ctrlbtn" id="newChallenge">🔁 تحدٍ جديد</button>
               <button class="ctrlbtn" id="endChallenge">تم</button>
