@@ -156,14 +156,12 @@
 
       let winnerName='';
       if(!timeUp && winnerId){
-        // زِد وسام ⭐ للطالب الفائز داخل الصف الحالي فقط
+        // أضف ⭐ وسام التحدي تلقائيًا للفائز
         const list=DB[currentClass];
         const idx=list.findIndex(s=>s.id===winnerId);
         if(idx>-1){
-          list[idx].medals = (list[idx].medals||0)+1;
           winnerName = list[idx].name;
-          saveData();
-          renderAll();
+          changeBadge(winnerId,'challenge',1);
           playWinSound();
         }
       }else{
